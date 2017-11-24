@@ -1,5 +1,4 @@
-const _ = require("lodash");
-const radelfFunctions = require("../radelf-functions");
+const _ = require("../utils");
 const queue = require("../message-queue");
 const points = require("../misc/points");
 const radelf = require("../radelf-client");
@@ -14,9 +13,9 @@ const raid = require("./raids");
 
 const reply = (text) => clearance.viewer((channel, userstate) => {
     if(userstate["message-type"] == "chat"){
-        queue.addMessage( channel, "@" + radelfFunctions.getUsername(userstate) + ", " + text);
+        queue.addMessage( channel, "@" + _.getUsername(userstate) + ", " + text);
     } else if(userstate["message-type"] == "whisper"){
-        queue.addWhisper(radelfFunctions.getUsername(userstate), text);
+        queue.addWhisper(_.getUsername(userstate), text);
     }
 });
 
@@ -30,13 +29,13 @@ var commands = {
     "goodbye":      clearance.viewer(
                         function(channel, userstate){
                             if(userstate["message-type"] == "whisper")  return;
-                            queue.addMessage( channel, "Goodbye " + radelfFunctions.getUsername(userstate) + "! See you next stream :)" );
+                            queue.addMessage( channel, "Goodbye " + _.getUsername(userstate) + "! See you next stream :)" );
                         }),
     
     "hello":         clearance.viewer(
                         function(channel, userstate){
                             if(userstate["message-type"] == "whisper")  return;
-                            queue.addMessage( channel, "Hello " + radelfFunctions.getUsername(userstate) + "! rawr" );
+                            queue.addMessage( channel, "Hello " + _.getUsername(userstate) + "! rawr" );
                         }),
     
     "help":         clearance.viewer(
@@ -50,14 +49,14 @@ var commands = {
                                 msg = "unknown command";
                             }
                             if(userstate["message-type"] == "whisper"){
-                                queue.addWhisper(radelfFunctions.getUsername(userstate), msg);
+                                queue.addWhisper(_.getUsername(userstate), msg);
                             }else if(userstate["message-type"] == "chat"){
-                                queue.addMessage(channel, "@" + radelfFunctions.getUsername(userstate) + ", " + msg);
+                                queue.addMessage(channel, "@" + _.getUsername(userstate) + ", " + msg);
                             }
                         }),
     "pet":          clearance.viewer(
                         function(channel, userstate){
-                            var username = radelfFunctions.getUsername(userstate);
+                            var username = _.getUsername(userstate);
                             queue.addMessage( channel, "/me purrs while " + username + " pets his head OhMyDog");
                         }),
     
@@ -97,13 +96,13 @@ var commands = {
                         }),
     "addquote":     clearance.viewer(
                         function(channel, userstate, message){
-                            var user = radelfFunctions.getUsername(userstate);
-                            var confrom = radelfFunctions.enoughPoints(user, 50);
-                            if(confrom[0] == true){
+                            var user = _.getUsername(userstate);
+                            var confrom = _.enoughPoints(user, 50);
+                            if(confrom){
                                 var quote = message.slice("!addquote ".length);
                                 quotes.push(quote);
-                                points[confrom[1]][1] = parseInt(points[confrom[1]][1]) - 50;
-                                radelfFunctions.saveQuotes();
+                                points[user] -= 50;
+                                _.saveQuotes();
                                 queue.addMessage(channel, "quote added!");
                             } else {
                                 queue.addWhisper(user, "not enought points");
@@ -114,11 +113,11 @@ var commands = {
                                 if(typeof sr === "undefined" || !sr){sr = false; queue.addMessage(channel, "songrequest is off") ;return;}
                                 var url = message.slice("!songrequest ".length);
                                 if(url == ""){ queue.addMessage(channel, "no link given"); return;};
-                                var user = radelfFunctions.getUsername(userstate);
-                                var confrom = radelfFunctions.enoughPoints(user, 15);
-                                if(confrom[0] == true){
+                                var user = _.getUsername(userstate);
+                                var confrom = _.enoughPoints(user, 15);
+                                if(confrom){
                                     songs.songs.push(url);
-                                    points[confrom[1]][1] = parseInt(points[confrom[1]][1]) - 15;
+                                    points[user] -= 15;
                                     queue.addMessage(channel, "song added to the queue");
                                 } else{
                                     queue.addWhisper(user, "not enought points");
@@ -129,16 +128,16 @@ var commands = {
     "vote":         clearance.viewer(
                         function(channel, userstate, message){
                             if(typeof voting === "undefined" || !voting){voting = false;queue.addMessage(channel, "There's no open poll at the moment"); return;}                            var option = message.slice("!vote ".length);
-                            var user = radelfFunctions.getUsername(userstate);
+                            var user = _.getUsername(userstate);
                             if(option > Object.keys(misc.poll.options).length)return;
                             if(!misc.voters.includes(user)){
                                 misc.poll[option] += 1;
                                 misc.voters.push(user);
                             } else {
-                                var conform = radelfFunctions.enoughPoints(user, 10);
-                                if(conform[0] != true){queue.addWhisper(user, "not enought points"); return;}
+                                var conform = _.enoughPoints(user, 10);
+                                if(conform != true){queue.addWhisper(user, "not enought points"); return;}
                                 misc.poll[option] += 1;
-                                points[conform[1]][1] = parseInt(points[conform[1]][1]) - 10;
+                                points[user] -= 10;
                             }
                         }),
     "poll":         clearance.viewer(
@@ -154,14 +153,14 @@ var commands = {
     "join": clearance.viewer(
                         function(channel, userstate){
                             if(typeof giveAway === "undefined" || !giveAway){giveAway = false; queue.addMessage(channel, "There's no giveaway at the moment"); return;};
-                            var user = radelfFunctions.getUsername(userstate);
+                            var user = _.getUsername(userstate);
                             if(!misc.giveaway.includes(user)){
                                 misc.giveaway.push(user); 
                             } else {
-                                var conform = radelfFunctions.enoughPoints(user, 50);
-                                if(!conform[0]){return;};
+                                var conform = _.enoughPoints(user, 50);
+                                if(!conform){return;};
                                 misc.giveaway.push(user);
-                                points[conform[1]][1] = parseInt(points[conform[1]][1]) - 50;
+                                points[user] -= 50;
                             }
                         }),
     
@@ -177,14 +176,14 @@ var commands = {
                         }),
     "savepoints":   clearance.moderator(
                         function(channel){
-                            radelfFunctions.savePoints();
+                            _.savePoints();
                         }),
     "modcmd":       clearance.moderator(
                         function(channel, userstate){
                             if(userstate["message-type"] == "whisper"){
-                                queue.addWhisper(radelfFunctions.getUsername(userstate), help["modcmd"]);
+                                queue.addWhisper(_.getUsername(userstate), help["modcmd"]);
                             }else if(userstate["message-type"] == "chat"){
-                                queue.addMessage(channel, "@" + radelfFunctions.getUsername(userstate) + ", " + help["modcmd"]);
+                                queue.addMessage(channel, "@" + _.getUsername(userstate) + ", " + help["modcmd"]);
                             }
                         }),
     "warn":         clearance.moderator(
@@ -192,19 +191,16 @@ var commands = {
                             var target = message.slice("!warn ".length);
                             if(!misc.mod.warn.includes(target)){
                                 misc.mod.warn.push(target);
-                                var conform = radelfFunctions.enoughPoints(target, 0);
-                                points[conform[1]][1] = parseInt(points[conform[1]][1]) - 100;
+                                points[target] -= 100;
                                 queue.addMessage(channel, target + " , you are warned! next warning is a 5 mins timeout!");
                             } else {
                                 if(misc.mod.timeout.includes(target)){
-                                    var conform = radelfFunctions.enoughPoints(target, 0);
-                                    points[conform[1]][1] = 0;
+                                    points[target] = 0;
                                     radelf.ban(channel,target);
                                     queue.addMessage(channel, target + " , you have been banned from chat!!");
                                 } else {
                                     misc.mod.timeout.push(target);
-                                    var conform = radelfFunctions.enoughPoints(target, 0);
-                                    points[conform[1]][1] = parseInt(points[conform[1]][1]) - 200;
+                                    points[target] -= 200;
                                     radelf.timeout(channel, target, 300);
                                     queue.addMessage(channel, target + " , you have been timed out for 5 mins! next warning will result in a ban from chat!!");
                                 }
@@ -222,23 +218,20 @@ var commands = {
                             queue.addMessage(channel, "songrequest off!");
                             sr = false
                         }),
-    "polltitle":    clearance.broadcaster(
-                        function(channel, userstate, message){
-                            var title = message.slice("!polltitle ".length);
-                            pollTitle = title;
-                        }),
     "newpoll":      clearance.broadcaster(
                         function(channel, userstate, message){
                             if(typeof voting !== "undefined" && voting)return;
                             voting = true;
-                            var messageArray = message.split(" ");
+                            var message = message.slice("!newpoll ".length);
+                            var pollTitle = message.split(",")[0];
+                            var options = message.split(",");
                             var string = "Poll opened! use !vote [index] to cast your vote. " + pollTitle +" Options are ";
-                            for (var i = 1; i < messageArray.length; i++) {
-                                misc.poll.options[i] = messageArray[i];
+                            for (var i = 1; i < options.length; i++) {
+                                misc.poll.options[i] = options[i];
                                 misc.poll.poll[i] = 0;
-                                str = [i] + ":" + messageArray[i];
+                                str = [i] + ":" + options[i];
                                 string += str;
-                                if(i != messageArray.length -1){ string += ", "}
+                                if(i != options.length -1){ string += ", "}
                             }
                             string += ". First vote is free! each vote after the first cost 10 points";
                             misc.poll.voters = [];
@@ -275,8 +268,7 @@ var commands = {
                         }),
     "test":         clearance.broadcaster(
                         function(channel){
-                            if(points.includes("alfred1203")){console.log("yes")};
-                            console.log(chatters.chatters);
+                            _.logger("info", misc.chatters);
                         }),
     "giveaway":     clearance.broadcaster(
                         function(channel, userstate, message){
@@ -294,7 +286,7 @@ var commands = {
                             if(typeof giveAway === "undefined" || !giveAway){giveAway = false; return;}
                             giveAway = false;
                             var winner = radelfFunctions.getArrayElement(misc.giveaway);
-                            console.log("[%s] info: the winner is %s", radelfFunctions.formatDate(new Date()), winner);
+                            _.logger("info", `the winner is ${winner}`);
                             if(winner == undefined){queue.addMessage(channel, "no one joined the giveaway!");return;};                            
                             queue.addMessage(channel, "The winner of the giveaway is ... " + winner);
                         }),

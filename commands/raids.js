@@ -1,6 +1,6 @@
 const radelf = require("../radelf-client");
 
-const radelfFunctions = require("../radelf-functions");
+const _ = require("../utils");
 
 const queue = require("../message-queue");
 
@@ -16,7 +16,7 @@ const raid = {
 
     commands: {
         "raidready": clearance.viewer((channel, userstate) => {
-            const name = radelfFunctions.getUsername(userstate);
+            const name = _.getUsername(userstate);
 
             if(raid.raiding) {
                 if(!raid.team.includes(userstate.username)) {
@@ -76,8 +76,8 @@ radelf.on("hosting", (channel, target, viewers) => {
         radelf.part(target);
         radelf.say(channel, "Great raid team! :D");
 
-        console.log("[raid] raid complete -- " + raid.teamVerified.length + " of " + raid.team.length);
-
+        _.logger("info", "[raid] raid complete -- " + raid.teamVerified.length + " of " + raid.team.length);
+        _.giveAllPoints(raid.teamVerified.length);
         raid.team = [];
         raid.teamVerified = [];
         raid.raiding = false;
