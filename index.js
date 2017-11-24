@@ -16,7 +16,8 @@ radelfDiscord.login(require("./config/secrets").discord.token);
 /****************TWITCH*********************/
 radelf.on("message",(channel, userstate, message, self)=>{ events.ttmessage(channel, userstate, message, self)});
 radelf.on("join",(channel, username, self)=>{events.join(channel, username, self)});
-radelf.on("part", (channel, username, self) =>{events.parts(channel, username, self)}); 
+radelf.on("part", (channel, username, self) =>{events.parts(channel, username, self)})
+radelf.on("ban", (channel, username)=>{events.banned()});
 radelf.on("newFollow", (follower)=>{events.newFollow(follower)});
 broadcaster.on("hosted", (channel, username, viewers)=>{events.hosted(channel, username, viewers)});
 /****************DISCORD*********************/
