@@ -1,11 +1,1 @@
-var fs = require("fs")
-var firstsplit = fs.readFileSync("/Users/Admin/points.txt", 'utf8').split(" ")
-var newArray = [];
-if(firstsplit != undefined){
-firstsplit.forEach(function(item){
-    var itemArray = item.split("|")
-    newArray.push(itemArray);
-})
-};
-newArray.sort(function(a,b){return b[1] - a[1]})
-module.exports = newArray;
+var points = {alfred1203:629,jaden:70,radelf:60,teamtalima:30,scryptonite:30,radelfbot:28,junmakii:1,wildturtle:10,}; module.exports = points;

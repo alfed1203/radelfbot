@@ -1,26 +1,22 @@
-const _ = require("lodash");
-const commands = require("../commands/commands");
 
-setTimeout(function(){
-    var commands = (require("../commands/commands"));
-    var cmds = _.keys(commands).filter(function(cmd){
-        if(commands[cmd].restricted) return false;
-        return true;
-    }).map( function(cmd){
-        return "!" + cmd;
-    });
-    helpcmd.undefined = "Here are some of my tricks: " + cmds.join(", ") + "."  
-}, 3000);
-
-setTimeout(function(){
-    var commands = (require("../commands/commands"));
-    var cmds = _.keys(commands).filter(function(cmd){
-        if(commands[cmd].restricted) return true;
-    }).map( function(cmd){
-        return "!" + cmd;
-    });
-    helpcmd["modcmd"] = "Here are my mod commands: " + cmds.join(", ") + "."
-}, 3000);
+setTimeout(() => {
+        const commands = require("../commands/commands");
+        var cmds = Object.keys(commands).filter(function(cmd){
+            if(commands[cmd].restricted) return false;
+                return true;
+            }).map( function(cmd){
+                return "!" + cmd;
+            });
+            helpcmd.undefined = "Here are some of my tricks: " + cmds.join(", ") + "."
+                   
+            var modcmds = Object.keys(commands).filter(function(modcmd){
+                if(commands[modcmd].restricted && commands[modcmd].mod) return true;
+            }).map( function(modcmd){
+                return "!" + modcmd;
+            });
+            helpcmd["modcmd"] =  "Here are my mod commands: " + modcmds.join(", ") + "."
+            
+}, 500);
 
 var helpcmd = {
     "goodbye": "!goodbye: Tells you goodbye.",

@@ -1,17 +1,16 @@
 const Discord = require("discord.js");
 const radelfdiscord = require("../radelfdiscord-client");
-const radelfFunctions = require("../radelf-functions");
-const _ = require("lodash");
+const _ = require("../utils");;
 const songs = require("../misc/song");
 const ytdl = require('ytdl-core');
 const streamOptions = { seek: 0, volume: 1 };
 
 const commands = {
     "ping":     function(message){
-        message.channel.send("pong " + radelfdiscord.ping + "ms");
+        message.channel.send("pong " + Math.floor(radelfdiscord.ping) + " ms");
     },
     "help":     function(message){
-                var cmds = _.keys(commands).filter( function(cmd){
+                var cmds = Object.keys(commands).filter( function(cmd){
                     return true;
                 }).map( function(cmd){
                     return "!" + cmd;
@@ -20,10 +19,10 @@ const commands = {
         message.channel.send(msg);
     }, 
     "nsfw":     function(message){
-                   var nsfw = message.guild.roles.find("name", "nsfw").id;
+                    var nsfw = message.guild.roles.find("name", "nsfw").id;
                     var user = message.member;
                     user.addRole(nsfw);
-                    console.log("[%s] [discord] info: %s has been added to the nsfw channel", radelfFunctions.formatDate(new Date()), message.author.username);
+                    _.logger("info",  `${message.author.username} has been added to the nsfw channel`);
                     
     },
     "avatar":   function(message){
@@ -42,27 +41,27 @@ const commands = {
                                 dispatcher = connection.playStream(stream, streamOptions);
 
                             } else {
-                                var url = radelfFunctions.getArrayElement(songs.favs);
+                                var url = _.getArrayElement(songs.favs);
                                 message.channel.send("now playing: " + url)
                                 var stream = ytdl(url, { format: "mp3"});
                                 dispatcher = connection.playStream(stream, streamOptions);
                             }
                             dispatcher.on('end', () => {
-                                console.log("ended");
+                                _.logger("info","ended");
                                 if(songs.songs[0] != undefined){
                                     var url = songs.songs.shift();
                                     message.channel.send("now playing: " + url)
                                     var stream = ytdl(url, { format: "mp3"});
                                     dispatcher = connection.playStream(stream, streamOptions);
                                 } else {
-                                    var url = radelfFunctions.getArrayElement(songs.favs);
+                                    var url = _.getArrayElement(songs.favs);
                                     message.channel.send("now playing: " + url)
                                     var stream = ytdl(url, { format: "mp3"});
                                     dispatcher = connection.playStream(stream, streamOptions);
                                 }
                             });
                             dispatcher.on('error', e => {
-                                console.log(e);
+                                _.logger("error",e);
                             })
                         })
                         .catch(console.log);
